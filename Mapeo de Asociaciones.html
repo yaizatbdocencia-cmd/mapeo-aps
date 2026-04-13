@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador ApS - CIFP Telde</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Montserrat', sans-serif; background-color: #f0f4f8; }
+        h1, h2, h3 { font-family: 'Comfortaa', cursive; }
+        .card-entidad { transition: all 0.2s ease; border-left: 6px solid transparent; }
+        .card-entidad:hover { transform: scale(1.02); border-left-color: #4f46e5; }
+        .gradient-header { background: linear-gradient(135deg, #1e293b 0%, #4f46e5 100%); }
+        /* Personalización de scrollbar para la lista */
+        #listaEntidades::-webkit-scrollbar { width: 6px; }
+        #listaEntidades::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="p-4 md:p-10">
+
+    <div class="max-w-6xl mx-auto">
+        <!-- Encabezado con Identidad del Centro -->
+        <header class="gradient-header text-white p-10 rounded-3xl mb-10 shadow-2xl relative overflow-hidden">
+            <div class="relative z-10">
+                <h1 class="text-4xl font-bold mb-3">Plataforma de Conexión ApS</h1>
+                <p class="text-xl opacity-90 max-w-2xl">Gestión de alianzas para Grados Básicos: Electricidad, Electrónica, Teleco y Automoción.</p>
+                <div class="mt-4 inline-flex items-center bg-white/20 px-4 py-2 rounded-full text-sm font-semibold">
+                    📍 Foco: Las Remudas y La Pardilla
+                </div>
+            </div>
+            <!-- Círculos decorativos de fondo -->
+            <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20"></div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- COLUMNA IZQUIERDA: REGISTRO -->
+            <div class="lg:col-span-5 space-y-6">
+                <section class="bg-white p-8 rounded-3xl shadow-lg border border-slate-100">
+                    <h2 class="text-2xl font-bold text-indigo-700 mb-6 flex items-center">
+                        <span class="bg-indigo-100 p-2 rounded-xl mr-3">✍️</span> Nuevo Registro
+                    </h2>
+                    <form id="registroForm" class="space-y-5">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Entidad / Asociación</label>
+                            <input type="text" id="nombreEntidad" placeholder="Ej. Asociación Vecinal La Pardilla" class="w-full p-4 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none transition-all" required>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Tipo</label>
+                                <select id="tipoEntidad" class="w-full p-4 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none">
+                                    <option value="Asociación">Asociación</option>
+                                    <option value="Fundación">Fundación</option>
+                                    <option value="Centro Local">Centro Local</option>
+                                    <option value="ONG">ONG</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Familia Profesional</label>
+                                <select id="familiaFoco" class="w-full p-4 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none">
+                                    <option value="Todas">Multidisciplinar (Todas)</option>
+                                    <option value="Electricidad">Electricidad</option>
+                                    <option value="Electrónica">Electrónica</option>
+                                    <option value="Telecomunicaciones">Telecomunicaciones</option>
+                                    <option value="Automoción">Automoción</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Necesidad Detectada en el Barrio</label>
+                            <textarea id="necesidad" placeholder="¿Qué necesita el barrio que nuestros talleres puedan solucionar?" class="w-full p-4 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none h-28" required></textarea>
+                        </div>
+
+                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-plus"></i> Guardar en Plataforma
+                        </button>
+                    </form>
+                </section>
+            </div>
+
+            <!-- COLUMNA DERECHA: LISTADO Y PROPUESTAS -->
+            <div class="lg:col-span-7 space-y-6">
+                <!-- Listado con Persistencia -->
+                <section class="bg-white p-8 rounded-3xl shadow-lg border border-slate-100">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-slate-800 flex items-center">
+                            <span class="bg-slate-100 p-2 rounded-xl mr-3">📂</span> Histórico Registrado
+                        </h2>
+                        <button onclick="borrarTodo()" class="text-xs text-red-400 hover:text-red-600 font-bold uppercase tracking-widest">Borrar Historial</button>
+                    </div>
+                    <div id="listaEntidades" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[300px] overflow-y-auto pr-2">
+                        <!-- Las entidades se cargarán aquí -->
+                    </div>
+                </section>
+
+                <!-- Propuesta Visual -->
+                <section id="zonaPropuestas" class="bg-slate-900 text-white p-8 rounded-3xl shadow-xl min-h-[300px] flex flex-col justify-center transition-all opacity-0">
+                    <div id="propuestaPlaceholder" class="text-center py-10">
+                        <p class="text-slate-500">Selecciona o registra una entidad para generar una propuesta de impacto.</p>
+                    </div>
+                    
+                    <div id="propuestaCuerpo" class="hidden space-y-6">
+                        <div class="flex items-center gap-3">
+                            <span id="labelFamilia" class="bg-amber-500 text-black text-[10px] font-black px-3 py-1 rounded-full uppercase">ELECTRÓNICA</span>
+                            <span id="badgeEntorno" class="text-emerald-400 text-xs font-bold italic">Contexto: Las Remudas</span>
+                        </div>
+                        
+                        <div>
+                            <h3 id="propuestaTitulo" class="text-3xl font-bold mb-3 text-white">Nombre del Proyecto</h3>
+                            <p id="propuestaDesc" class="text-slate-300 text-lg leading-relaxed">Descripción detallada...</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-white/5 p-4 rounded-2xl border border-white/10">
+                                <h4 class="text-amber-400 font-bold text-sm mb-1">🛠️ Valor Grado Básico</h4>
+                                <p id="valorAlumnado" class="text-sm text-slate-300">Logros técnicos.</p>
+                            </div>
+                            <div class="bg-white/5 p-4 rounded-2xl border border-white/10">
+                                <h4 class="text-emerald-400 font-bold text-sm mb-1">🏘️ Valor para el Barrio</h4>
+                                <p id="valorBarrio" class="text-sm text-slate-300">Impacto en la zona.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <script>
+        let entidades = JSON.parse(localStorage.getItem('entidades_telde')) || [];
+        const form = document.getElementById('registroForm');
+        const lista = document.getElementById('listaEntidades');
+        const zonaPropuestas = document.getElementById('zonaPropuestas');
+
+        // Lógica de Proyectos por Familia Profesional
+        const obtenerLogicaApS = (entidad) => {
+            const familia = entidad.familia;
+            const nec = entidad.necesidad.toLowerCase();
+            
+            let p = {
+                titulo: "Proyecto Multidisciplinar",
+                desc: "Intervención técnica integral para la mejora de la entidad.",
+                valorA: "Trabajo en equipo y resolución de problemas.",
+                valorB: "Apoyo técnico profesional gratuito.",
+                clase: "bg-indigo-500"
+            };
+
+            if (familia === "Todas") {
+                p = {
+                    titulo: "Eco-Barrio Inteligente",
+                    desc: "Proyecto integral que combina electricidad (iluminación), electrónica (sensores de ahorro), teleco (red comunitaria) y automoción (revisión de vehículos de reparto social).",
+                    valorA: "Colaboración entre todos los talleres del centro.",
+                    valorB: "Transformación tecnológica completa del espacio vecinal.",
+                    clase: "bg-gradient-to-r from-indigo-500 to-emerald-500"
+                };
+            } else if (familia === "Electricidad") {
+                p = {
+                    titulo: "Iluminando Las Remudas",
+                    desc: "Revisión y mejora de la instalación eléctrica y luminarias LED en locales sociales de la zona.",
+                    valorA: "Montaje de cuadros eléctricos y eficiencia energética.",
+                    valorB: "Ahorro económico y mejora de la seguridad del local.",
+                    clase: "bg-yellow-500"
+                };
+            } else if (familia === "Automoción") {
+                p = {
+                    titulo: "Mecánica Vecinal Solidaria",
+                    desc: "Jornadas de revisión de niveles, neumáticos y seguridad para vehículos de personas con pocos recursos del barrio.",
+                    valorA: "Mantenimiento preventivo de vehículos reales.",
+                    valorB: "Mejora de la seguridad vial en La Pardilla.",
+                    clase: "bg-red-500"
+                };
+            } else if (familia === "Telecomunicaciones") {
+                p = {
+                    titulo: "Conecta-Barrio",
+                    desc: "Instalación de puntos Wi-Fi y configuración de redes en centros comunitarios para zonas de estudio.",
+                    valorA: "Configuración de routers y cableado de red.",
+                    valorB: "Acceso gratuito a internet para jóvenes del barrio.",
+                    clase: "bg-blue-500"
+                };
+            } else if (familia === "Electrónica") {
+                p = {
+                    titulo: "Repara y Reutiliza",
+                    desc: "Taller de reparación de pequeños electrodomésticos y dispositivos digitales para vecinos del entorno.",
+                    valorA: "Soldadura, diagnóstico y reparación de circuitos.",
+                    valorB: "Fomento de la economía circular y ahorro familiar.",
+                    clase: "bg-emerald-500"
+                };
+            }
+
+            return p;
+        };
+
+        const renderizarPropuesta = (entidad) => {
+            const p = obtenerLogicaApS(entidad);
+            zonaPropuestas.style.opacity = "1";
+            document.getElementById('propuestaPlaceholder').classList.add('hidden');
+            document.getElementById('propuestaCuerpo').classList.remove('hidden');
+            
+            document.getElementById('propuestaTitulo').innerText = p.titulo;
+            document.getElementById('propuestaDesc').innerText = p.desc;
+            document.getElementById('valorAlumnado').innerText = p.valorA;
+            document.getElementById('valorBarrio').innerText = p.valorB;
+            
+            const label = document.getElementById('labelFamilia');
+            label.innerText = entidad.familia === "Todas" ? "MULTIDISCIPLINAR" : entidad.familia;
+            label.className = `text-[10px] font-black px-3 py-1 rounded-full uppercase text-white ${p.clase}`;
+            
+            document.getElementById('badgeEntorno').innerText = `Contexto: ${entidad.nombre.includes('Pardilla') ? 'La Pardilla' : 'Las Remudas'}`;
+        };
+
+        const guardarEntidades = () => {
+            localStorage.setItem('entidades_telde', JSON.stringify(entidades));
+            renderizarLista();
+        };
+
+        const renderizarLista = () => {
+            if (entidades.length === 0) {
+                lista.innerHTML = '<p class="col-span-full text-slate-400 text-center py-10 italic">No hay registros previos.</p>';
+                return;
+            }
+            
+            lista.innerHTML = entidades.map((ent, idx) => `
+                <div onclick="verDetalle(${idx})" class="card-entidad bg-slate-50 p-4 rounded-2xl border border-slate-200 cursor-pointer shadow-sm">
+                    <h4 class="font-bold text-slate-800 truncate">${ent.nombre}</h4>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span class="text-[9px] ${ent.familia === 'Todas' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-600'} px-2 py-0.5 rounded font-bold">${ent.familia}</span>
+                        <span class="text-[9px] text-indigo-500 font-bold">${ent.tipo}</span>
+                    </div>
+                </div>
+            `).join('');
+        };
+
+        window.verDetalle = (idx) => {
+            renderizarPropuesta(entidades[idx]);
+        };
+
+        window.borrarTodo = () => {
+            if(confirm('¿Seguro que quieres borrar todos los registros de la plataforma?')) {
+                entidades = [];
+                guardarEntidades();
+                location.reload();
+            }
+        };
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nueva = {
+                nombre: document.getElementById('nombreEntidad').value,
+                tipo: document.getElementById('tipoEntidad').value,
+                familia: document.getElementById('familiaFoco').value,
+                necesidad: document.getElementById('necesidad').value
+            };
+            entidades.unshift(nueva); // Añadir al principio
+            guardarEntidades();
+            renderizarPropuesta(nueva);
+            form.reset();
+        });
+
+        // Carga inicial
+        renderizarLista();
+    </script>
+</body>
+</html>
